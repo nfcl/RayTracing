@@ -29,7 +29,7 @@ public:
         bool hit_anything = false;
         double closest_so_far = ray_t.max;
         for(const auto& object : objects){
-            if(object->hit(ray, ray_t, temp_infos) && temp_infos.t < closest_so_far) {
+            if(object->hit(ray, Interval(ray_t.min, closest_so_far), temp_infos)) {
                 hit_anything = true;
                 closest_so_far = temp_infos.t;
                 infos = temp_infos;
