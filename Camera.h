@@ -2,11 +2,16 @@
 #define _CAMERA_H_
 
 #include <iostream>
+#include <thread>
 
 #include "Hittable.h"
 #include "Color.h"
 #include "Interval.h"
 #include "Material.h"
+#include "ThreadPool.h"
+
+using std::thread;
+using std::atomic;
 
 class Camera {
 public:
@@ -14,7 +19,7 @@ public:
     double aspect_ratio     = 16.0 / 9.0;
     int image_width         = 400;
     int samples_per_pixel   = 100;
-    int max_reflect_depth   = 10;
+    int max_depth   = 10;
 
     double vfov             = 90;
     Point3 lookfrom         = Point3(0, 0, 0);
@@ -24,24 +29,54 @@ public:
     double defocus_angle    = 0;
     double focus_dist       = 10;
 
+    atomic<int> resultAdd   = 0;
+    const Hittable* world;
+    std::vector<std::vector<Color>> result;
+
     void Render(const Hittable& world) {
         Initialize();
         
+        this->world = &world;
+
+        ThreadPool pool(10);
+
+        pool.init();
+
+        resultAdd = image_height;
+
+        result = std::vector<std::vector<Color>>(image_height);
+
         std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+        std::clog << "\rScanlines remaining: " << resultAdd << ' ' << std::flush;
 
         for (int j = 0; j < image_height; j++) {
-            std::clog << "\rScanlines remaining: " << (image_height - j) << ' ' << std::flush;
-            for (int i = 0; i < image_width; i++) {
-                Color pixel_color(0, 0, 0);
-                for(int sample = 0; sample < samples_per_pixel; ++sample) {
-                    Ray ray = Get_ray(i, j);
-                    pixel_color += Ray_Color(ray, max_reflect_depth, world);
-                }
-                write_color(std::cout, pixel_color * pixel_samples_scale);
+            auto future = pool.submit(std::bind(&Camera::_ThreadRender, this, std::placeholders::_1), j);
+        }
+
+        while (resultAdd != 0);
+
+        for (int j = 0; j < image_height; ++j) {
+            for (int i = 0; i < image_width; ++i) {
+                write_color(std::cout, result[j][i]);
             }
         }
 
         std::clog << "\rDone.                 \n";
+
+        pool.shutdown();
+    }
+    void _ThreadRender(int rowId) {
+        result[rowId] = std::vector<Color>(image_width);
+        for (int i = 0; i < image_width; i++) {
+            Color pixel_color(0, 0, 0);
+            for (int sample = 0; sample < samples_per_pixel; ++sample) {
+                Ray ray = Get_ray(i, rowId);
+                pixel_color += Ray_Color(ray, max_depth, *world);
+            }
+            result[rowId][i] = pixel_color * pixel_samples_scale;
+        }
+        resultAdd -= 1;
+        std::clog << "\rScanlines remaining: " << resultAdd << ' ' << std::flush;
     }
 private:
 
