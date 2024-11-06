@@ -12,13 +12,12 @@ public:
 		
 		Vec3 unit_direction = r_in.direction().normalized();
 		double cos_theta = std::fmin(Vec3::dot(-unit_direction, infos.normal), 1.0);
-		//double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
+		double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
 
-		//bool cannot_refract = (ri * sin_theta) > 1.0;
+		bool cannot_refract = (ri * sin_theta) > 1.0;
 		Vec3 direction;
 
-		//if (cannot_refract) {
-		if (DielectricMaterial::reflectance(cos_theta, ri) > random_double()) {
+		if (cannot_refract || DielectricMaterial::reflectance(cos_theta, ri) > random_double()) {
 			direction = reflect(unit_direction, infos.normal);
 		}
 		else {
