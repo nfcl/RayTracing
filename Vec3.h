@@ -155,4 +155,10 @@ inline Vec3 refract(const Vec3& uv, const Vec3& n, double etai_over_etat) {
     return r_out_perp + r_out_parallel;
 }
 
+inline Vec3 random_in_unit_disk() {
+    double x = random_double(-1, 1);
+    double ylength = std::sqrt(1 - x * x);
+    return Vec3(x, random_double(-ylength, ylength));
+}
+
 #endif
