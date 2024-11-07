@@ -121,7 +121,6 @@ private:
         defocus_disk_v = v * defocus_radius;
     }
     Ray Get_ray(int i, int j) const {
-        
         Vec3 offset = Sample_Square();
         Vec3 pixel_sample = pixel100_loc + ((i + offset.x()) * pixel_delta_u) + ((j + offset.y()) * pixel_delta_v);
         

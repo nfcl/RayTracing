@@ -8,6 +8,7 @@
 #include "LambertianMaterial.h"
 #include "MetalMaterial.h"
 #include "DielectricMaterial.h"
+#include "BVHNode.h"
 
 int main() {
 
@@ -55,6 +56,8 @@ int main() {
 
     auto Material3 = make_shared<MetalMaterial>(Color(0.7, 0.6, 0.5), 0.0);
     world.Add(make_shared<Sphere>(Point3(4, 1, 0), 1.0, Material3));
+
+    world = HittableList(make_shared<BVHNode>(world));
 
     Camera camera;
 
