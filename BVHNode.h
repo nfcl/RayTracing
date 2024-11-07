@@ -6,18 +6,15 @@
 #include "HittableList.h"
 
 #include <algorithm>
+#include <functional>
 
 class BVHNode : public Hittable {
 public:
-	BVHNode(HittableList list) : BVHNode(list.objects, 0, list.objects.size()) {
-
-	}
+	BVHNode(HittableList list) : BVHNode(list.objects, 0, list.objects.size()) {}
 	BVHNode(std::vector<shared_ptr<Hittable>>& objects, size_t start, size_t end) {
 		int axis = random_int(0, 2);
 
-		auto comparator = (axis == 0) ? box_x_compare
-						: (axis == 1) ? box_y_compare
-									  : box_z_compare;
+		auto comparator = std::bind(box_compare, std::placeholders::_1, std::placeholders::_2, axis);
 
 		size_t object_span = end - start;
 
@@ -31,7 +28,7 @@ public:
 		else {
 			std::sort(std::begin(objects) + start, std::begin(objects) + end, comparator);
 
-			auto mid = start + object_span / 2;
+			size_t mid = start + object_span / 2;
 			left = make_shared<BVHNode>(objects, start, mid);
 			right = make_shared<BVHNode>(objects, mid, end);
 		}
@@ -60,16 +57,6 @@ private:
 		Interval a_axis_interval = a->BoundingBox().AxisInterval(axis_index);
 		Interval b_axis_interval = b->BoundingBox().AxisInterval(axis_index);
 		return a_axis_interval.min < b_axis_interval.min;
-	}
-
-	static bool box_x_compare(const shared_ptr<Hittable> a, const shared_ptr<Hittable> b) {
-		return box_compare(a, b, 0);
-	}
-	static bool box_y_compare(const shared_ptr<Hittable> a, const shared_ptr<Hittable> b) {
-		return box_compare(a, b, 1);
-	}
-	static bool box_z_compare(const shared_ptr<Hittable> a, const shared_ptr<Hittable> b) {
-		return box_compare(a, b, 2);
 	}
 };
 

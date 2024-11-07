@@ -36,7 +36,7 @@ public:
 			const Interval& ax = AxisInterval(axis);
 			const double adinv = 1.0 / ray_direction[axis];
 
-			double t0 = (ax.min - ray_direction[axis]) * adinv;
+			double t0 = (ax.min - ray_origin[axis]) * adinv;
 			double t1 = (ax.max - ray_origin[axis]) * adinv;
 
 			if (t0 < t1) {
