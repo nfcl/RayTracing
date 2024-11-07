@@ -2,6 +2,7 @@
 #define _HITTABLELIST_H_
 
 #include "Hittable.h"
+#include "AABB.h"
 
 #include <vector>
 #include <memory>
@@ -23,6 +24,7 @@ public:
     }
     void Add(shared_ptr<Hittable> object) {
         objects.push_back(object);
+        bbox = AABB(bbox, object->BoundingBox());
     }
     bool hit(const Ray& ray, Interval ray_t, HitInfos& infos) const override {
         HitInfos temp_infos;
@@ -37,6 +39,11 @@ public:
         }
         return hit_anything;
     }
+    AABB BoundingBox() const override {
+        return bbox;
+    }
+private:
+    AABB bbox;
 };
 
 #endif
